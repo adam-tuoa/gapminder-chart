@@ -1,0 +1,134 @@
+.bubble-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.bubble-chart svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.segmented button {
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+}
+
+.segmented button:last-child {
+  border-right: 0;
+}
+
+.segmented button:hover {
+  background: var(--accent-bg);
+}
+
+.segmented button.is-active {
+  background: var(--accent-bg);
+  color: var(--text-h);
+  font-weight: 500;
+}
+
+.gridlines line {
+  stroke: var(--border);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.axis {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.axis text {
+  fill: currentColor;
+}
+
+.axis-title {
+  font-size: 13px;
+  fill: var(--text-h);
+}
+
+.country-labels text {
+  font-size: 10px;
+  fill: var(--text-h);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.label-leader {
+  stroke: var(--text);
+  stroke-opacity: 0.45;
+  stroke-width: 1;
+  fill: none;
+}
+
+.legend {
+  font-size: 12px;
+  fill: var(--text-h);
+}
+
+.legend text {
+  fill: currentColor;
+}
+
+.legend-title {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-bg {
+  fill: var(--social-bg);
+  stroke: var(--border);
+}
+
+.legend-pop-group circle {
+  stroke: var(--text);
+  stroke-opacity: 0.4;
+}
+
+.legend-pop-group line {
+  stroke: var(--text);
+  stroke-opacity: 0.4;
+}
+
+.legend-item {
+  cursor: pointer;
+}
+
+.legend-item.is-inactive text {
+  fill: var(--text);
+  opacity: 0.5;
+}

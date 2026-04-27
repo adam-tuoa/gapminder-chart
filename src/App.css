@@ -10,4 +10,38 @@
   margin: 0 auto;
   padding: 2rem 1.5rem;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.content > * {
+  max-width: 100%;
+}
+
+.content h1 {
+  text-align: center;
+}
+
+.subtitle {
+  margin-bottom: 1.5rem;
+}
+
+.insight {
+  max-width: 700px;
+  margin: 0.75rem auto 1.5rem;
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+.source {
+  max-width: 700px;
+  margin: 1.5rem auto 0;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.source a {
+  color: var(--accent);
 }

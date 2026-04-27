@@ -2,6 +2,12 @@ import { FaGithub, FaHome } from "react-icons/fa";
 import "./Footer.css";
 
 export default function Footer({ attribution, links }) {
+  const isEmbedded =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("embed") === "1";
+
+  if (isEmbedded) return null;
+
   const iconMap = {
     github: <FaGithub size={20} />,
     home: <FaHome size={20} />,
