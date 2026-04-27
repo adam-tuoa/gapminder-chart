@@ -8,10 +8,11 @@ function App() {
       <main className="content">
         <h1>Wealth buys years — to a point</h1>
         <p className="insight">
-          The global curve hides continental stories. Africa shows little
-          coupling between wealth and longevity, while Asia and Europe track
-          clearly — but flatten above ~$25K. Even Canada and the US, the
-          Americas' richest, sit on that plateau, not above it.
+          The shape depends on the scale. On linear, wealth's returns flatten
+          above ~$25K – even Canada and the US sit on that plateau (Japan and
+          Switzerland, less wealthy, live longer still). Switch to log, and the
+          curve straightens, revealing Africa's hidden range – from under $300
+          to over $13K from poorest to richest.
         </p>
         <BubbleChart />
         <p className="source">

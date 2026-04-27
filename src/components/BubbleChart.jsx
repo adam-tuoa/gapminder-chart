@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { scaleLinear, scaleSqrt, scaleOrdinal, max } from "d3";
+import { scaleLinear, scaleLog, scaleSqrt, scaleOrdinal, max } from "d3";
 import { data } from "../data";
 import { useDimensions } from "../hooks/useDimensions";
 import "./BubbleChart.css";
@@ -17,7 +17,11 @@ const CONTINENT_COLORS = [
 
 const POP_LEGEND_VALUES = [10_000_000, 100_000_000, 500_000_000, 1_000_000_000];
 
-const formatGdp = (n) => (n === 0 ? "$0" : `$${n / 1000}K`);
+const formatGdp = (n) => {
+  if (n === 0) return "$0";
+  if (n < 1000) return `$${n}`;
+  return `$${n / 1000}K`;
+};
 const formatPop = (n, isMax) => {
   const prefix = isMax ? ">" : "";
   if (n >= 1e9) return `${prefix}${n / 1e9}B`;
@@ -45,14 +49,18 @@ export default function BubbleChart() {
 
   const [active, setActive] = useState(() => new Set(CONTINENTS));
   const [labelMetric, setLabelMetric] = useState("lifeExp");
+  const [xScaleType, setXScaleType] = useState("linear");
 
   const innerWidth = width - MARGIN.left - MARGIN.right;
   const innerHeight = height - MARGIN.top - MARGIN.bottom;
 
-  const xScale = scaleLinear()
-    .domain([0, max(data, (d) => d.gdpPercap)])
-    .nice()
-    .range([0, innerWidth]);
+  const xScale =
+    xScaleType === "log"
+      ? scaleLog().domain([250, 64000]).range([0, innerWidth])
+      : scaleLinear()
+          .domain([0, max(data, (d) => d.gdpPercap)])
+          .nice()
+          .range([0, innerWidth]);
 
   const yScale = scaleLinear()
     .domain([35, max(data, (d) => d.lifeExp)])
@@ -65,7 +73,16 @@ export default function BubbleChart() {
 
   const colorScale = scaleOrdinal().domain(CONTINENTS).range(CONTINENT_COLORS);
 
-  const xTicks = xScale.ticks(width < 500 ? 5 : width < 800 ? 8 : 10);
+  // Log scale: doubling ticks for evenly-spaced gridlines.
+  const doublingTicks = (start, end) => {
+    const ticks = [];
+    for (let v = start; v <= end; v *= 2) ticks.push(v);
+    return ticks;
+  };
+  const xTicks =
+    xScaleType === "log"
+      ? doublingTicks(250, 64000)
+      : xScale.ticks(width < 500 ? 5 : width < 800 ? 8 : 10);
   const yTicks = yScale.ticks(width < 500 ? 6 : 8);
 
   const sortedData = [...data].sort((a, b) => b.pop - a.pop);
@@ -174,18 +191,41 @@ export default function BubbleChart() {
   return (
     <div ref={containerRef} className="bubble-chart">
       <div className="chart-controls">
-        <span className="chart-controls__label">Min/Max per Continent by:</span>
-        <div className="segmented" role="group">
-          {Object.values(LABEL_METRICS).map((m) => (
+        <div className="chart-controls__group">
+          <span className="chart-controls__label">
+            Min/Max per Continent by:
+          </span>
+          <div className="segmented" role="group">
+            {Object.values(LABEL_METRICS).map((m) => (
+              <button
+                key={m.key}
+                type="button"
+                className={labelMetric === m.key ? "is-active" : ""}
+                onClick={() => setLabelMetric(m.key)}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="chart-controls__group">
+          <span className="chart-controls__label">GDP scale:</span>
+          <div className="segmented" role="group">
             <button
-              key={m.key}
               type="button"
-              className={labelMetric === m.key ? "is-active" : ""}
-              onClick={() => setLabelMetric(m.key)}
+              className={xScaleType === "linear" ? "is-active" : ""}
+              onClick={() => setXScaleType("linear")}
             >
-              {m.label}
+              Linear
             </button>
-          ))}
+            <button
+              type="button"
+              className={xScaleType === "log" ? "is-active" : ""}
+              onClick={() => setXScaleType("log")}
+            >
+              Log
+            </button>
+          </div>
         </div>
       </div>
       <svg

@@ -17,9 +17,15 @@
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 10px 24px;
   font-size: 13px;
   color: var(--text);
+}
+
+.chart-controls__group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .segmented {
