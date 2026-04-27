@@ -196,7 +196,13 @@ export default function BubbleChart() {
   // Small right inset so the box doesn't touch the chart edge.
   const LEG_RIGHT_INSET = 1;
   const MIN_LEG_W = 150;
-  const idealLegBoxX = xScale(35000);
+  // Pin to the linear-scale $35K position so the legend doesn't shift when
+  // toggling to log (where xScale($35K) lands somewhere different).
+  const legendXScale = scaleLinear()
+    .domain([0, max(data, (d) => d.gdpPercap)])
+    .nice()
+    .range([0, innerWidth]);
+  const idealLegBoxX = legendXScale(35000);
   const legBoxX = Math.min(
     idealLegBoxX,
     innerWidth - MIN_LEG_W - LEG_RIGHT_INSET,
