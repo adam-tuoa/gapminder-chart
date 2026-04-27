@@ -6,7 +6,7 @@ function App() {
   return (
     <div className="app">
       <main className="content">
-        <h1>Wealth buys years — to a point</h1>
+        <h1>Wealth buys years – to a point</h1>
         <p className="insight">
           The shape depends on the scale. On linear, wealth's returns flatten
           above ~$25K – even Canada and the US sit on that plateau (Japan and
