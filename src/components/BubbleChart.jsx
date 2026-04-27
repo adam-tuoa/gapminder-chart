@@ -50,6 +50,7 @@ export default function BubbleChart() {
   const [active, setActive] = useState(() => new Set(CONTINENTS));
   const [labelMetric, setLabelMetric] = useState("lifeExp");
   const [xScaleType, setXScaleType] = useState("linear");
+  const [legendOpen, setLegendOpen] = useState(true);
 
   const innerWidth = width - MARGIN.left - MARGIN.right;
   const innerHeight = height - MARGIN.top - MARGIN.bottom;
@@ -338,12 +339,26 @@ export default function BubbleChart() {
             </text>
           </g>
 
-          {/* combined legend box (Continent + Population) */}
+          {/* combined legend box (Continent + Population) — toggleable */}
+          {legendOpen ? (
           <g
             className="legend legend-box"
             transform={`translate(${legBoxX}, ${legBoxY})`}
           >
             <rect className="legend-bg" width={LEG_W} height={legBoxH} rx={8} />
+
+            {/* close button (X) — top-right */}
+            <g
+              className="legend-close"
+              transform={`translate(${LEG_W - 16}, 16)`}
+              onClick={() => setLegendOpen(false)}
+              role="button"
+              aria-label="Close legend"
+            >
+              <rect x={-10} y={-10} width={20} height={20} rx={4} />
+              <line x1={-4} y1={-4} x2={4} y2={4} />
+              <line x1={-4} y1={4} x2={4} y2={-4} />
+            </g>
 
             <text
               x={continentTitleX}
@@ -416,6 +431,25 @@ export default function BubbleChart() {
               })}
             </g>
           </g>
+          ) : (
+            <g
+              className="legend-tab"
+              transform={`translate(${legBoxX}, ${innerHeight - 28})`}
+              onClick={() => setLegendOpen(true)}
+              role="button"
+              aria-label="Show legend"
+            >
+              <rect width={LEG_W - LEG_RIGHT_INSET} height={26} rx={6} />
+              <text
+                x={(LEG_W - LEG_RIGHT_INSET) / 2}
+                y={13}
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                Show legend
+              </text>
+            </g>
+          )}
         </g>
       </svg>
     </div>

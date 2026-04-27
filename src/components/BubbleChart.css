@@ -138,3 +138,51 @@
   fill: var(--text);
   opacity: 0.5;
 }
+
+.legend-close {
+  cursor: pointer;
+}
+
+.legend-close rect {
+  fill: transparent;
+}
+
+.legend-close line {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.legend-close:hover rect {
+  fill: var(--code-bg);
+}
+
+.legend-close:hover line {
+  stroke: var(--text-h);
+}
+
+.legend-tab {
+  cursor: pointer;
+}
+
+.legend-tab rect {
+  fill: var(--social-bg);
+  stroke: var(--border);
+}
+
+.legend-tab text {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-tab:hover rect {
+  fill: var(--accent-bg);
+  stroke: var(--accent-border);
+}
+
+.legend-tab:hover text {
+  fill: var(--text-h);
+}
