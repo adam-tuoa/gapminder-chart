@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { scaleLinear, scaleLog, scaleSqrt, scaleOrdinal, max } from "d3";
 import { data } from "../data";
 import { useDimensions } from "../hooks/useDimensions";
@@ -51,6 +51,24 @@ export default function BubbleChart() {
   const [labelMetric, setLabelMetric] = useState("lifeExp");
   const [xScaleType, setXScaleType] = useState("linear");
   const [legendOpen, setLegendOpen] = useState(true);
+
+  // Smoothly transition bubble x-positions when toggling scale type.
+  // Scoped to the toggle so resize still snaps instantly (a 1s lag during
+  // continuous resize would feel broken).
+  const [isScaleAnimating, setIsScaleAnimating] = useState(false);
+  const changeScale = (next) => {
+    if (next === xScaleType) return;
+    // Set animating flag and new scale in the same event so React batches them
+    // into one render — the is-animating class lands on the same paint as the
+    // new cx values, which is what the browser needs to start a CSS transition.
+    setIsScaleAnimating(true);
+    setXScaleType(next);
+  };
+  useEffect(() => {
+    if (!isScaleAnimating) return;
+    const t = setTimeout(() => setIsScaleAnimating(false), 1600);
+    return () => clearTimeout(t);
+  }, [isScaleAnimating]);
 
   const innerWidth = width - MARGIN.left - MARGIN.right;
   const innerHeight = height - MARGIN.top - MARGIN.bottom;
@@ -119,29 +137,44 @@ export default function BubbleChart() {
     const r = rScale(d.pop);
     const halfW = (d.country.length * CHAR_W) / 2;
     const cx = Math.max(halfW + 2, Math.min(innerWidth - halfW - 2, cx0));
-    const dir = d.anchor === "above" ? -1 : 1;
-    let gap = dir === -1 ? r + 5 : r + 12;
+    const preferredDir = d.anchor === "above" ? -1 : 1;
+    let dir = preferredDir;
     let placedAttempt = 0;
-    let py = cy + dir * gap;
-    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      const y = cy + dir * gap;
-      const top = y - TEXT_H + 2;
-      const bottom = y + 2;
-      const left = cx - halfW;
-      const right = cx + halfW;
-      const collides = placed.some(
-        (p) =>
-          right > p.left && left < p.right && bottom > p.top && top < p.bottom,
-      );
-      if (!collides) {
-        placed.push({ left, right, top, bottom });
-        py = y;
-        placedAttempt = attempt;
-        break;
+    let py = cy + dir * (dir === -1 ? r + 5 : r + 12);
+    let placedOk = false;
+    // Try preferred direction first, then flip to the opposite side if
+    // every candidate above (or below) collides or leaves the chart.
+    for (const tryDir of [preferredDir, -preferredDir]) {
+      let gap = tryDir === -1 ? r + 5 : r + 12;
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        const y = cy + tryDir * gap;
+        const top = y - TEXT_H + 2;
+        const bottom = y + 2;
+        const left = cx - halfW;
+        const right = cx + halfW;
+        const outOfBounds = top < 0 || bottom > innerHeight;
+        const collides = placed.some(
+          (p) =>
+            right > p.left &&
+            left < p.right &&
+            bottom > p.top &&
+            top < p.bottom,
+        );
+        if (!outOfBounds && !collides) {
+          placed.push({ left, right, top, bottom });
+          py = y;
+          dir = tryDir;
+          placedAttempt = attempt + (tryDir === preferredDir ? 0 : 1);
+          placedOk = true;
+          break;
+        }
+        gap += STEP;
       }
-      gap += STEP;
-      py = cy + dir * gap;
-      placedAttempt = attempt + 1;
+      if (placedOk) break;
+    }
+    if (!placedOk) {
+      // Both sides full — clamp into the chart so the label is at least visible.
+      py = Math.max(TEXT_H, Math.min(innerHeight - 2, py));
     }
     return { ...d, cx0, cy, r, dir, px: cx, py, attempt: placedAttempt };
   });
@@ -215,14 +248,14 @@ export default function BubbleChart() {
             <button
               type="button"
               className={xScaleType === "linear" ? "is-active" : ""}
-              onClick={() => setXScaleType("linear")}
+              onClick={() => changeScale("linear")}
             >
               Linear
             </button>
             <button
               type="button"
               className={xScaleType === "log" ? "is-active" : ""}
-              onClick={() => setXScaleType("log")}
+              onClick={() => changeScale("log")}
             >
               Log
             </button>
@@ -259,7 +292,7 @@ export default function BubbleChart() {
           </g>
 
           {/* circles */}
-          <g className="bubbles">
+          <g className={`bubbles${isScaleAnimating ? " is-animating" : ""}`}>
             {sortedData.map((d) => {
               const isActive = active.has(d.continent);
               return (
@@ -278,24 +311,30 @@ export default function BubbleChart() {
           </g>
 
           {/* country labels (min/max per continent on chosen metric) */}
-          <g className="country-labels">
+          <g
+            className={`country-labels${isScaleAnimating ? " is-animating" : ""}`}
+          >
             {positionedLabels.map((d) => {
               const shifted = d.attempt > 0 || Math.abs(d.cx0 - d.px) > 1;
-              const lineEndY = d.dir === -1 ? d.py + 4 : d.py - 10;
+              // Leader line is in label-local coords so it moves with the
+              // wrapping <g transform>. End sits just above/below text.
+              const lineLocalEndY = d.dir === -1 ? 4 : -10;
               return (
-                <g key={`${d.country}-${d.anchor}`}>
+                <g
+                  key={`${d.country}-${d.anchor}`}
+                  className="country-label"
+                  style={{ transform: `translate(${d.px}px, ${d.py}px)` }}
+                >
                   {shifted && (
                     <line
                       className="label-leader"
-                      x1={d.cx0}
-                      y1={d.cy + d.dir * d.r}
-                      x2={d.px}
-                      y2={lineEndY}
+                      x1={d.cx0 - d.px}
+                      y1={d.cy + d.dir * d.r - d.py}
+                      x2={0}
+                      y2={lineLocalEndY}
                     />
                   )}
-                  <text x={d.px} y={d.py} textAnchor="middle">
-                    {d.country}
-                  </text>
+                  <text textAnchor="middle">{d.country}</text>
                 </g>
               );
             })}

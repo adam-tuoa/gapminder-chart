@@ -81,6 +81,26 @@
   fill: var(--text-h);
 }
 
+.bubbles.is-animating circle {
+  transition:
+    cx 1.6s ease-in-out,
+    cy 1.6s ease-in-out;
+}
+
+.country-labels.is-animating .country-label {
+  transition: transform 1.6s ease-in-out;
+}
+
+/* Leader-line endpoints would need to track both bubble and label
+   independently mid-flight — fade them and let them re-appear when settled. */
+.country-labels .label-leader {
+  transition: opacity 0.25s ease-in-out;
+}
+
+.country-labels.is-animating .label-leader {
+  opacity: 0;
+}
+
 .country-labels text {
   font-size: 10px;
   fill: var(--text-h);
